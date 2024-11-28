@@ -107,7 +107,7 @@ void drawClaw()
 {
     glColor3f(0.4f, 0.3f, 0.2f);
     glPushMatrix();
-    glTranslatef(0.0f, 0.5f, 0.0f);
+    glTranslatef(0.0f, 0.1f, 0.0f);
     glScalef(0.14f, 0.5f, 0.3f);
     glutSolidCube(1.0);
     glPopMatrix();
@@ -140,7 +140,7 @@ void display()
     drawHandForearmArticulation();
 
     // Claw rotation
-    glTranslatef(0.0, 1.0, 0.0);
+    glTranslatef(0.0, forearmSizeHeight+0.1, 0.0);
     glRotatef(clawRotate, 0.0, 0.0, 1.0);
     drawClaw();
 
