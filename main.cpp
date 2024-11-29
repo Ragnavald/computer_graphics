@@ -27,6 +27,53 @@ const float timeStep = 0.016f; // Fixed time step (for ~60 FPS)
 // Timing
 clock_t prevTime = clock();
 
+void resetArticulations() {
+    baseRotate = 0.0f;
+    armRotate = 0.0f;
+    forearmRotate = 0.0f;
+    clawRotate = 0.0f;
+    glutPostRedisplay();
+}
+
+void adjustLight(float x, float y, float z) {
+    GLfloat lightPos[] = {x, y, z, 1.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+    glutPostRedisplay();
+}
+
+void menu(int option) {
+    switch (option) {
+    case 1:
+        resetArticulations();
+        break;
+    case 2:
+        adjustLight(1.0f, 1.0f, 1.0f); // Default position
+        break;
+    case 3:
+        adjustLight(2.0f, 2.0f, 2.0f); // Brighter position
+        break;
+    case 4:
+        adjustLight(0.5f, 0.5f, 0.5f); // Dim position
+        break;
+    case 0:
+        exit(0); // Exit the program
+    }
+}
+
+void createMenu() {
+    int lightMenu = glutCreateMenu(menu);
+    glutAddMenuEntry("Default Light", 2);
+    glutAddMenuEntry("Brighter Light", 3);
+    glutAddMenuEntry("Dim Light", 4);
+
+    glutCreateMenu(menu);
+    glutAddMenuEntry("Reset Articulations", 1);
+    glutAddSubMenu("Light Settings", lightMenu);
+    glutAddMenuEntry("Exit", 0);
+
+    glutAttachMenu(GLUT_RIGHT_BUTTON); // Activate menu on right-click
+}
+
 
 void init()
 {
@@ -210,16 +257,80 @@ void update(int value) {
     // Continue updating
     glutTimerFunc(16, update, 0); // 16 ms for ~60 FPS
 }
+// Global variables for camera control
+float cameraPosX = 2.0f, cameraPosY = 2.0f, cameraPosZ = 5.0f;
+float cameraTargetX = 0.0f, cameraTargetY = 0.0f, cameraTargetZ = 0.0f;
+float cameraSpeed = 0.5f; // Speed of camera movement
 
-void display()
-{
+void specialKeys(int key, int x, int y) {
+    // Calculate direction vector
+    float directionX = cameraTargetX - cameraPosX;
+    float directionY = cameraTargetY - cameraPosY;
+    float directionZ = cameraTargetZ - cameraPosZ;
+
+    // Normalize direction vector
+    float length = sqrt(directionX * directionX + directionY * directionY + directionZ * directionZ);
+    directionX /= length;
+    directionY /= length;
+    directionZ /= length;
+
+    // Handle arrow keys
+    switch (key) {
+    case GLUT_KEY_UP: // Move forward
+        cameraPosX += directionX * cameraSpeed;
+        cameraPosY += directionY * cameraSpeed;
+        cameraPosZ += directionZ * cameraSpeed;
+        break;
+    case GLUT_KEY_DOWN: // Move backward
+        cameraPosX -= directionX * cameraSpeed;
+        cameraPosY -= directionY * cameraSpeed;
+        cameraPosZ -= directionZ * cameraSpeed;
+        break;
+    case GLUT_KEY_LEFT: // Rotate left
+        cameraPosX -= directionZ * cameraSpeed; // Perpendicular to the forward direction
+        cameraPosZ += directionX * cameraSpeed;
+        break;
+    case GLUT_KEY_RIGHT: // Rotate right
+        cameraPosX += directionZ * cameraSpeed; // Perpendicular to the forward direction
+        cameraPosZ -= directionX * cameraSpeed;
+        break;
+    }
+    glutPostRedisplay();
+}
+
+void resetCamera() {
+    cameraPosX = 2.0f;
+    cameraPosY = 2.0f;
+    cameraPosZ = 5.0f;
+    cameraTargetX = 0.0f;
+    cameraTargetY = 0.0f;
+    cameraTargetZ = 0.0f;
+    glutPostRedisplay(); // Redesenha a cena
+}
+
+// Função de callback do mouse
+void mouse(int button, int state, int x, int y) {
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        // Reseta a câmera ao clicar com o botão esquerdo do mouse
+        resetCamera();
+    }
+}
+
+void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
-    gluLookAt(2.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+    // Set camera
+    gluLookAt(
+        cameraPosX, cameraPosY, cameraPosZ, // Camera position
+        cameraTargetX, cameraTargetY, cameraTargetZ, // Camera target
+        0.0, 1.0, 0.0 // Up vector
+    );
 
     drawObject();
     drawSpherePoints();
     drawAxes();
+
     // Base rotation
     glPushMatrix();
     glRotatef(baseRotate, 0.0, 1.0, 0.0);
@@ -229,18 +340,16 @@ void display()
     glTranslatef(0.0, 0.1, 0.0);
     glRotatef(armRotate, 0.0, 0.0, 1.0);
     drawArm();
-
     drawArmArticulation();
 
     // Forearm rotation
     glTranslatef(0.0, 1.0, 0.0);
     glRotatef(forearmRotate, 0.0, 0.0, 1.0);
     drawForearm();
-
     drawHandForearmArticulation();
 
     // Claw rotation
-    glTranslatef(0.0, forearmSizeHeight+0.1, 0.0);
+    glTranslatef(0.0, forearmSizeHeight + 0.1, 0.0);
     glRotatef(clawRotate, 0.0, 0.0, 1.0);
     drawClaw();
 
@@ -292,18 +401,20 @@ void keyboard(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Robotic Arm");
+    glutCreateWindow("Robotic Arm with Camera Control");
     init();
     generateSpherePoints(posObjX, posObjY, posObjZ, objRadius, resolution);
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeys); // Registrar o handler das teclas especiais
+    glutMouseFunc(mouse); // Registrar o handler do mouse
     glutTimerFunc(16, update, 0);
+    createMenu();
     glutMainLoop();
     return 0;
 }
