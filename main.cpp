@@ -1,4 +1,7 @@
 #include <GL/glut.h>
+#include <cmath>
+#include <ctime>
+#include <algorithm>
 
 float baseRotate = 0.0f, armRotate = 0.0f, forearmRotate = 0.0f, clawRotate = 0.0f;
 
@@ -10,6 +13,17 @@ float baseBaseRadiusSize = 0.23f;
 float forearmBaseRadiusSize = 0.12f;
 float forearmSizeHeight = 1.2f;
 
+// Physics parameters
+float posObjX = 0.8f;
+float posObjY = 0.9f;
+float posObjZ =  0.8f;       // Initial position (Y-coordinate)
+float vel = 0.0f;         // Initial velocity
+const float acc = -9.8 *50.0f;  // Gravity (m/s²)
+const float timeStep = 0.016f; // Fixed time step (for ~60 FPS)
+
+// Timing
+clock_t prevTime = clock();
+
 void init()
 {
     glEnable(GL_DEPTH_TEST);
@@ -18,6 +32,16 @@ void init()
     glEnable(GL_COLOR_MATERIAL);
     GLfloat lightPos[] = {1.0f, 1.0f, 1.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+}
+
+void drawObject()
+{
+    // Draw the object at the current position
+    glPushMatrix();
+    glTranslatef(posObjX, posObjY, posObjZ);  // Move to the current position
+    glColor3f(1.0f, 0.0f, 0.0f);   // Red color
+    glutSolidSphere(0.05, 32, 32); // Draw a sphere
+    glPopMatrix();
 }
 
 void drawAxes()
@@ -113,11 +137,39 @@ void drawClaw()
     glPopMatrix();
 }
 
+void update(int value) {
+    // Calculate time since the last frame
+    clock_t currentTime = clock();
+    float dt = (float)(currentTime - prevTime) / CLOCKS_PER_SEC;
+    prevTime = currentTime;
+
+    // Cap dt for consistency in low frame rates
+    dt = std::min(dt, timeStep);
+
+    // Update velocity and position
+    vel += acc * dt;
+    posObjY += vel * dt;
+
+    // Clamp position to ground level
+    if (posObjY < 0.0f) { // Assume -0.9 is the ground level
+        posObjY = 0.0f;
+        vel = 0.0f; // Stop velocity on hitting ground
+    }
+
+    // Redisplay
+    glutPostRedisplay();
+    
+    // Continue updating
+    glutTimerFunc(16, update, 0); // 16 ms for ~60 FPS
+}
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
     gluLookAt(2.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+    drawObject();
 
     drawAxes();
     // Base rotation
@@ -202,6 +254,7 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutTimerFunc(16, update, 0);
     glutMainLoop();
     return 0;
 }
