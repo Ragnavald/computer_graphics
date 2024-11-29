@@ -2,6 +2,7 @@
 #include <cmath>
 #include <ctime>
 #include <algorithm>
+#include <vector>
 
 float baseRotate = 0.0f, armRotate = 0.0f, forearmRotate = 0.0f, clawRotate = 0.0f;
 
@@ -12,17 +13,20 @@ float baseBaseRadiusSize = 0.23f;
 
 float forearmBaseRadiusSize = 0.12f;
 float forearmSizeHeight = 1.2f;
+float resolution = 35.0f;
 
 // Physics parameters
 float posObjX = 0.8f;
 float posObjY = 0.9f;
 float posObjZ =  0.8f;       // Initial position (Y-coordinate)
+float objRadius = 0.3f;
 float vel = 0.0f;         // Initial velocity
 const float acc = -9.8 *50.0f;  // Gravity (m/s²)
 const float timeStep = 0.016f; // Fixed time step (for ~60 FPS)
 
 // Timing
 clock_t prevTime = clock();
+
 
 void init()
 {
@@ -34,14 +38,58 @@ void init()
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 }
 
+// Estrutura para representar um ponto 3D
+struct Point3D {
+    float x, y, z;
+};
+
+// Variável global para armazenar os pontos da esfera
+std::vector<Point3D> spherePoints;
+
+// Função para gerar pontos da superfície da esfera
+void generateSpherePoints(float centerX, float centerY, float centerZ, float radius, int resolution) {
+    spherePoints.clear(); // Limpa qualquer dado anterior
+    for (int i = 0; i <= resolution; ++i) { // Ângulo polar (θ)
+        float theta = M_PI * i / resolution; // De 0 a π
+
+        for (int j = 0; j <= resolution; ++j) { // Ângulo azimutal (φ)
+            float phi = 2 * M_PI * j / resolution; // De 0 a 2π
+
+            // Calcula as coordenadas do ponto
+            float x = centerX + radius * sin(theta) * cos(phi);
+            float y = centerY + radius * sin(theta) * sin(phi);
+            float z = centerZ + radius * cos(theta);
+
+            // Adiciona o ponto ao vetor global
+            spherePoints.push_back({x, y, z});
+        }
+    }
+}
+
 void drawObject()
 {
     // Draw the object at the current position
     glPushMatrix();
     glTranslatef(posObjX, posObjY, posObjZ);  // Move to the current position
     glColor3f(1.0f, 0.0f, 0.0f);   // Red color
-    glutSolidSphere(0.05, 32, 32); // Draw a sphere
+    glutSolidSphere(objRadius, objRadius*100, objRadius*100); // Draw a sphere
     glPopMatrix();
+}
+
+void drawSpherePoints() {
+    glPushMatrix(); // Salva a matriz atual
+
+    // Aplica a translação para mover a esfera para a posição correta
+    glTranslatef(posObjX-0.89f, posObjY-1.0f, posObjZ-1.0f);
+
+    glBegin(GL_POINTS); // Inicia a renderização de pontos
+    glColor3f(0.0f, 1.0f, 0.0f); // Cor verde para os pontos
+    for (const auto& point : spherePoints) {
+        glVertex3f(point.x, point.y, point.z); // Desenha cada ponto
+    }
+    glEnd();
+
+    glPopMatrix(); // Restaura a matriz original
 }
 
 void drawAxes()
@@ -170,7 +218,7 @@ void display()
     gluLookAt(2.0, 2.0, 5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
     drawObject();
-
+    drawSpherePoints();
     drawAxes();
     // Base rotation
     glPushMatrix();
@@ -251,6 +299,7 @@ int main(int argc, char **argv)
     glutInitWindowSize(800, 600);
     glutCreateWindow("Robotic Arm");
     init();
+    generateSpherePoints(posObjX, posObjY, posObjZ, objRadius, resolution);
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
