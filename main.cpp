@@ -27,6 +27,11 @@ float sphereR = 1.0f;
 float sphereG = 0.0f;
 float sphereB = 0.0f;
 
+GLfloat mat_ambient[] = {0.8f, 0.5f, 0.2f, 1.0f};
+GLfloat mat_diffuse[] = {0.8f, 0.5f, 0.2f, 1.0f};
+GLfloat mat_specular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+GLfloat mat_shininess[] = {50.0f};
+
 
 float indicadorX = 0.05f, indicadorY = 0.35f, indicadorZ = 0.1f;
 float medioX = 0.0f, medioY = 0.35f, medioZ = 0.0f;
@@ -95,6 +100,8 @@ void init()
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_TEXTURE_2D);
     carregarTextura("textura.jpg", 0);
+    carregarTextura("metal-texture.png", 1);
+    carregarTextura("circuits.png", 2);
     GLfloat lightPos[] = {1.0f, 1.0f, 1.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
 }
@@ -151,105 +158,38 @@ void createMenu() {
     glutAttachMenu(GLUT_RIGHT_BUTTON); // Activate menu on right-click
 }
 
-
-/* bool isFingerTouchingSphere(float fingerX, float fingerY, float fingerZ)
-{
-        float distance = sqrt(
-            pow(fingerX - posObjX, 2) +
-            pow(fingerY - posObjY, 2) +
-            pow(fingerZ - posObjZ, 2)
-        );
-
-        if (distance <= objRadius) {
-            std::cout << "colisão";
-            return true;
-        }
-
-    return false;
-} */
-
-
-/* void areFingersTouchingSphere() {
-
-    bool indicadorTouch = isFingerTouchingSphere(indicadorX, indicadorY, indicadorZ);
-    bool medioTouch = isFingerTouchingSphere(medioX, medioY, medioZ);
-    bool anelarTouch = isFingerTouchingSphere(anelarX, anelarY, anelarZ);
-    bool mindinhoTouch = isFingerTouchingSphere(mindinhoX, mindinhoY, mindinhoZ);
-    bool polegarTouch = isFingerTouchingSphere(polegarX, polegarY, polegarZ);
-    bool clawCondition = (clawAngle <= -25.0f);
-
-    std::cout << "Indicador: " << indicadorTouch << "\n";
-    std::cout << "Médio: " << medioTouch << "\n";
-    std::cout << "Anelar: " << anelarTouch << "\n";
-    std::cout << "Mindinho: " << mindinhoTouch << "\n";
-    std::cout << "Polegar: " << polegarTouch << "\n";
-    std::cout << "Claw Angle: " << clawCondition << " (Claw Angle = " << clawAngle << ")\n";
-
-    if (indicadorTouch && medioTouch && anelarTouch && mindinhoTouch && polegarTouch && clawCondition) {
-        sphereB = 1.0f;
-        objIsGrabbed = true;
-    }
-
-    objIsGrabbed = false;
-
-} */
-
-
-/* void generateSpherePoints(float centerX, float centerY, float centerZ, float radius, int resolution) {
-    spherePoints.clear();
-    for (int i = 0; i <= resolution; ++i) {
-        float theta = M_PI * i / resolution;
-
-        for (int j = 0; j <= resolution; ++j) {
-            float phi = 2 * M_PI * j / resolution;
-
-            float x = centerX + radius * sin(theta) * cos(phi);
-            float y = centerY + radius * sin(theta) * sin(phi);
-            float z = centerZ + radius * cos(theta);
-
-            spherePoints.push_back({x, y, z});
-        }
-    }
-} */
-
-
 void drawObject()
 {
     // Ativa o uso de texturas
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[1]); // Associa a textura
 
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
 
-    // Configura como a textura interage com a cor
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(sphereR, sphereG, sphereB); // Define a cor
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
 
-    // Substitua por sua própria implementação de esfera com mapeamento UV, se necessário
-
+    // Cria um objeto quadrático para renderizar a esfera
+    GLUquadric *quad = gluNewQuadric();
+    gluQuadricTexture(quad, GL_TRUE);  // Ativa a textura
+    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
 
     glPushMatrix();
     glTranslatef(posObjX, posObjY, posObjZ); // Move para a posição desejada
-    glutSolidSphere(objRadius, 50, 50);
+    gluSphere(quad, objRadius, 50, 50);      // Desenha a esfera com textura
     glPopMatrix();
+
+    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
 
     // Desativa o uso de texturas para outros objetos, se necessário
     glDisable(GL_TEXTURE_2D);
 }
 
 
-void drawSpherePoints() {
-    glPushMatrix(); // Salva a matriz atual
-    glTranslatef(posObjX - 0.8f, posObjY - 0.9f, posObjZ- 0.8f);
-    glBegin(GL_POINTS); // Inicia a renderização de pontos
-    glColor3f(0.0f, 1.0f, 0.0f); // Cor verde para os pontos
-    for (const auto& point : spherePoints) {
-        glVertex3f(point.x, point.y, point.z); // Desenha cada ponto
-    }
-    glEnd();
-
-    glPopMatrix(); // Restaura a matriz original
-}
 
 void drawAxes()
 {
@@ -276,33 +216,83 @@ void drawAxes()
 
 void drawCylinder(float baseRadius, float topRadius, float height, float angle, float x, float y, float z)
 {
-    GLUquadric *quad = gluNewQuadric();
+    GLUquadric *quad = gluNewQuadric();               // Cria o objeto quadrático
+    gluQuadricTexture(quad, GL_TRUE);                 // Habilita a textura no quadrático
+    gluQuadricNormals(quad, GLU_SMOOTH);              // Normais suaves para iluminação
+
     glPushMatrix();
-    glRotatef(angle, x, y, z); // Rotação no ângulo e eixo especificados
-    gluCylinder(quad, baseRadius, topRadius, height, 20, 20);
+    glRotatef(angle, x, y, z);                        // Rotação no ângulo e eixo especificados
+    gluCylinder(quad, baseRadius, topRadius, height, 20, 20); // Desenha o cilindro
     glPopMatrix();
 
-    gluDeleteQuadric(quad);
+    gluDeleteQuadric(quad);                           // Deleta o objeto quadrático
 }
 
 void drawBase()
 {
-    glColor3f(0.5f, 0.35f, 0.05f);
-    // Desenhar a esfera
+    // Ativa o uso de texturas
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+
+    // Configuração de materiais
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+
+    // Criação do objeto quadrático para a esfera
+    GLUquadric *quad = gluNewQuadric();
+    gluQuadricTexture(quad, GL_TRUE);   // Ativa a textura para a esfera
+    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
+
+    // Desenho da esfera com textura
     glPushMatrix();
-    glTranslatef(0.0f, 0.1f, 0.0f);
-    glutSolidSphere(baseBaseRadiusSize, baseBaseRadiusSize *100, baseBaseRadiusSize*100); // Raio = 0.2, subdivisões longitude/latitude = 20
+    glTranslatef(0.0f, 0.1f, 0.0f);     // Move para a posição desejada
+    gluSphere(quad, baseBaseRadiusSize, 50, 50); // Esfera com raio e subdivisões
     glPopMatrix();
+
+    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
+
+    // Desativa o uso de texturas para outros objetos
+    glDisable(GL_TEXTURE_2D);
 }
+
 
 void drawArmArticulation()
 {
-    glColor3f(0.5f, 0.35f, 0.05f);
-    // Desenhar a esfera
+        // Ativa o uso de texturas
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+
+    // Configuração de materiais
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+
+    // Criação do objeto quadrático para a esfera
+    GLUquadric *quad = gluNewQuadric();
+    gluQuadricTexture(quad, GL_TRUE);   // Ativa a textura para a esfera
+    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
+
+    // Desenho da esfera com textura
     glPushMatrix();
     glTranslatef(0, armSizeHeight, 0.0f);
-    glutSolidSphere(armBaseRadiusSize, armBaseRadiusSize *100, armBaseRadiusSize *100); // Raio = 0.2, subdivisões longitude/latitude = 20
+    gluSphere(quad, armBaseRadiusSize, 50, 50); // Esfera com raio e subdivisões
     glPopMatrix();
+
+    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
+
+    // Desativa o uso de texturas para outros objetos
+    glDisable(GL_TEXTURE_2D);
 }
 
 void drawHandForearmArticulation()
@@ -318,31 +308,124 @@ void drawHandForearmArticulation()
 
 void drawArm()
 {
-    glColor3f(0.8f, 0.5f, 0.2f);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); // Associa a textura
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
+
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Defina a cor como branca para não interferir na textura
+
     glPushMatrix();
     glTranslatef(0.0f, 1.0f, 0.0f);
-    drawCylinder(armBaseRadiusSize, baseBaseRadiusSize, armSizeHeight,90.f,0.1f,0.0f,0.0f);
+    drawCylinder(armBaseRadiusSize, baseBaseRadiusSize, armSizeHeight, 90.f, 0.1f, 0.0f, 0.0f);
     glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 }
+
 
 void drawForearm()
 {
-    glColor3f(0.8f, 0.5f, 0.2f);
+
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); // Associa a textura
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
+
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Defina a cor como branca para não interferir na textura
+
     glPushMatrix();
     glTranslatef(0.0f, forearmSizeHeight, 0.0f);
     drawCylinder(forearmBaseRadiusSize, armBaseRadiusSize, forearmSizeHeight,90.f,0.1f,0.0f,0.0f);
     glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 }
 
-void drawClaw(float clawAngle) {
-    glColor3f(0.4f, 0.3f, 0.2f); // Cor da base da garra
+void drawTexturedCube()
+{
+    glBegin(GL_QUADS);
+
+    // Face frontal
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
+
+    // Face traseira
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
+
+    // Face superior
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
+
+    // Face inferior
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
+
+    // Face direita
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
+
+    // Face esquerda
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
+
+    glEnd();
+}
+
+
+void drawClaw(float clawAngle)
+{
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
 
     // Base da garra (palma da mão)
     glPushMatrix();
     glTranslatef(baseHandX, baseHandY, baseHandZ); // Posição da base
     glScalef(0.2f, 0.5f, 0.3f); // Escala da base
-    glutSolidCube(1.0); // Base da garra (palma)
+    drawTexturedCube(); // Desenha o cubo com textura
     glPopMatrix();
+
+    glDisable(GL_TEXTURE_2D);
 
     // Função para desenhar um dedo
     auto drawFinger = [](float posX, float posY, float posZ, float angle, float length, float width) {
@@ -351,7 +434,7 @@ void drawClaw(float clawAngle) {
         glRotatef(angle, 0.0f, 0.0f, 1.0f); // Rotação do dedo
         glTranslatef(length / 2, 0.0f, 0.0f); // Ajuste para rotação
         glScalef(length, width, width); // Escala do dedo
-        glutSolidCube(1.0); // Dedo como um cubo
+        drawTexturedCube(); // Desenha o dedo como cubo texturizado
         glPopMatrix();
     };
 
@@ -359,13 +442,9 @@ void drawClaw(float clawAngle) {
     drawFinger(indicadorX, indicadorY, indicadorZ, clawAngle, 0.3f, 0.05f); // Indicador
     drawFinger(medioX, medioY, medioZ, clawAngle, 0.3f, 0.05f);           // Médio
     drawFinger(anelarX, anelarY, anelarZ, clawAngle, 0.3f, 0.05f);        // Anelar
-    drawFinger(mindinhoX, mindinhoY, mindinhoZ, clawAngle, 0.25f, 0.05f); // Mindinho
-    
-    // Polegar
+    drawFinger(mindinhoX, mindinhoY, mindinhoZ, clawAngle, 0.25f, 0.05f); // Mindinho   
     drawFinger(polegarX, polegarY, polegarZ, -clawAngle, 0.25f, 0.05f);   // Polegar
-    
 }
-
 
 
 void update(int value) {
@@ -459,7 +538,6 @@ void display() {
     );
 
     drawObject();
-    drawSpherePoints();
     drawAxes();
 
     // Base rotation
@@ -483,7 +561,6 @@ void display() {
     glTranslatef(0.0, forearmSizeHeight + 0.1, 0.0);
     glRotatef(clawRotate, 0.0, 0.0, 1.0);
     drawClaw(clawAngle);
-
     glPopMatrix();
     glutSwapBuffers();
 }
@@ -551,6 +628,7 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(keyboard);
     glutSpecialFunc(specialKeys); // Registrar o handler das teclas especiais
     glutMouseFunc(mouse); // Registrar o handler do mouse
+
     glutTimerFunc(16, update, 0);
     createMenu();
     glutMainLoop();
