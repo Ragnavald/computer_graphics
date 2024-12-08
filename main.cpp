@@ -45,7 +45,7 @@ float posObjY = 3.0;
 float posObjZ =  0.8f;       // Initial position (Y-coordinate)
 float objRadius = 0.3f;
 float vel = 0.0f;         // Initial velocity
-const float acc = -9.8 *40.0f;  // Gravity (m/s²)
+double acc = -9.8 *40.0;  // Gravity (m/s²)
 const float timeStep = 0.016f; // Fixed time step (for ~60 FPS)
 
 // Estrutura para representar um ponto 3D
@@ -138,6 +138,18 @@ void menu(int option) {
     case 5:
         posObjY = 3.0f;
         break;
+    case 6:
+        acc = -9.8*40;
+        posObjY = 3.0f;
+        break;
+    case 7:
+        acc = -5*40;
+        posObjY = 3.0f;
+        break;
+    case 8:
+        acc = -20*40;
+        posObjY = 3.0f;
+        break;
     case 0:
         exit(0); // Exit the program
     }
@@ -148,10 +160,17 @@ void createMenu() {
     glutAddMenuEntry("Default Light", 2);
     glutAddMenuEntry("Brighter Light", 3);
     glutAddMenuEntry("Dim Light", 4);
+    
+
+    int gravityMenu = glutCreateMenu(menu);
+    glutAddMenuEntry("9.8", 6);
+    glutAddMenuEntry("5", 7);
+    glutAddMenuEntry("20", 8);
 
     glutCreateMenu(menu);
     glutAddMenuEntry("Reset Articulations", 1);
     glutAddMenuEntry("Reset Sphere", 5);
+    glutAddSubMenu("Gravity", gravityMenu);
     glutAddSubMenu("Light Settings", lightMenu);
     glutAddMenuEntry("Exit", 0);
 
@@ -456,13 +475,14 @@ void update(int value) {
     // Cap dt for consistency in low frame rates
     dt = std::min(dt, timeStep);
 
-    // Update velocity and position
-    vel += acc * dt;
-    posObjY += vel * dt;
+
     // Clamp position to ground level
     if (posObjY < 0.0f) {
         posObjY = 0.0f;
         vel = 0.0f; // Stop velocity on hitting ground
+    }else{
+        vel += acc * dt;
+        posObjY += vel * dt;
     }
 
     // Redisplay
