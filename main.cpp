@@ -39,30 +39,30 @@ float anelarX = -0.05f, anelarY = 0.35f, anelarZ = -0.1f;
 float mindinhoX = -0.1f, mindinhoY = 0.35f, mindinhoZ = -0.15f;
 float polegarX = 0.0f, polegarY = 0.2f, polegarZ = 0.2f;
 
-// Physics parameters
+
 float posObjX = 0.8f;
 float posObjY = 3.0;
-float posObjZ =  0.8f;       // Initial position (Y-coordinate)
+float posObjZ =  0.8f;       
 float objRadius = 0.3f;
-float vel = 0.0f;         // Initial velocity
-double acc = -9.8 *40.0;  // Gravity (m/s²)
-const float timeStep = 0.016f; // Fixed time step (for ~60 FPS)
+float vel = 0.0f;         
+double acc = -9.8 *40.0;  
+const float timeStep = 0.016f; 
 
-// Estrutura para representar um ponto 3D
+
 struct Point3D {
     float x, y, z;
 };
 
-// Variável global para armazenar os pontos da esfera
+
 std::vector<Point3D> spherePoints;
 
-// Timing
+
 clock_t prevTime = clock();
 
-// Global variables for camera control
+
 float cameraPosX = 2.0f, cameraPosY = 2.0f, cameraPosZ = 5.0f;
 float cameraTargetX = 0.0f, cameraTargetY = 0.0f, cameraTargetZ = 0.0f;
-float cameraSpeed = 0.5f; // Speed of camera movement
+float cameraSpeed = 0.5f; 
 
 void carregarTextura(const char* nomeArquivo, int indice)
 {
@@ -73,11 +73,11 @@ void carregarTextura(const char* nomeArquivo, int indice)
  if (!dados)
   exit(1);
 
- // gerar textura
+ 
  glGenTextures(1, &idsTextura[indice]);
  glBindTexture(GL_TEXTURE_2D, idsTextura[indice]);
 
- // configurar parametros da textura
+ 
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -87,7 +87,7 @@ void carregarTextura(const char* nomeArquivo, int indice)
                largura, altura, 0, (canais == 4) ? GL_RGBA : GL_RGB,
                GL_UNSIGNED_BYTE, dados);
 
- // liberar a memoria da imagem
+ 
  stbi_image_free(dados);              
 }
 
@@ -127,13 +127,13 @@ void menu(int option) {
         resetArticulations();
         break;
     case 2:
-        adjustLight(1.0f, 1.0f, 1.0f); // Default position
+        adjustLight(1.0f, 1.0f, 1.0f); 
         break;
     case 3:
-        adjustLight(2.0f, 2.0f, 2.0f); // Brighter position
+        adjustLight(2.0f, 2.0f, 2.0f); 
         break;
     case 4:
-        adjustLight(0.5f, 0.5f, 0.5f); // Dim position
+        adjustLight(0.5f, 0.5f, 0.5f); 
         break;
     case 5:
         posObjY = 3.0f;
@@ -151,7 +151,7 @@ void menu(int option) {
         posObjY = 3.0f;
         break;
     case 0:
-        exit(0); // Exit the program
+        exit(0); 
     }
 }
 
@@ -174,37 +174,37 @@ void createMenu() {
     glutAddSubMenu("Light Settings", lightMenu);
     glutAddMenuEntry("Exit", 0);
 
-    glutAttachMenu(GLUT_RIGHT_BUTTON); // Activate menu on right-click
+    glutAttachMenu(GLUT_RIGHT_BUTTON); 
 }
 
 void drawObject()
 {
-    // Ativa o uso de texturas
+    
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[1]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[1]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
-    // Cria um objeto quadrático para renderizar a esfera
+    
     GLUquadric *quad = gluNewQuadric();
-    gluQuadricTexture(quad, GL_TRUE);  // Ativa a textura
-    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
+    gluQuadricTexture(quad, GL_TRUE);  
+    gluQuadricNormals(quad, GLU_SMOOTH); 
 
     glPushMatrix();
-    glTranslatef(posObjX, posObjY, posObjZ); // Move para a posição desejada
-    gluSphere(quad, objRadius, 50, 50);      // Desenha a esfera com textura
+    glTranslatef(posObjX, posObjY, posObjZ); 
+    gluSphere(quad, objRadius, 50, 50);      
     glPopMatrix();
 
-    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
+    gluDeleteQuadric(quad); 
 
-    // Desativa o uso de texturas para outros objetos, se necessário
+    
     glDisable(GL_TEXTURE_2D);
 }
 
@@ -212,20 +212,20 @@ void drawObject()
 
 void drawAxes()
 {
-    glLineWidth(2.0); // Aumenta a espessura das linhas
+    glLineWidth(2.0); 
     glBegin(GL_LINES);
 
-    // Eixo X (Vermelho)
+    
     glColor3f(1.0, 0.0, 0.0);
     glVertex3f(-2.0, 0.0, 0.0);
     glVertex3f(2.0, 0.0, 0.0);
 
-    // Eixo Y (Verde)
+    
     glColor3f(0.0, 1.0, 0.0);
     glVertex3f(0.0, -2.0, 0.0);
     glVertex3f(0.0, 2.0, 0.0);
 
-    // Eixo Z (Azul)
+    
     glColor3f(0.0, 0.0, 1.0);
     glVertex3f(0.0, 0.0, -2.0);
     glVertex3f(0.0, 0.0, 2.0);
@@ -235,92 +235,92 @@ void drawAxes()
 
 void drawCylinder(float baseRadius, float topRadius, float height, float angle, float x, float y, float z)
 {
-    GLUquadric *quad = gluNewQuadric();               // Cria o objeto quadrático
-    gluQuadricTexture(quad, GL_TRUE);                 // Habilita a textura no quadrático
-    gluQuadricNormals(quad, GLU_SMOOTH);              // Normais suaves para iluminação
+    GLUquadric *quad = gluNewQuadric();               
+    gluQuadricTexture(quad, GL_TRUE);                 
+    gluQuadricNormals(quad, GLU_SMOOTH);              
 
     glPushMatrix();
-    glRotatef(angle, x, y, z);                        // Rotação no ângulo e eixo especificados
-    gluCylinder(quad, baseRadius, topRadius, height, 20, 20); // Desenha o cilindro
+    glRotatef(angle, x, y, z);                        
+    gluCylinder(quad, baseRadius, topRadius, height, 20, 20); 
     glPopMatrix();
 
-    gluDeleteQuadric(quad);                           // Deleta o objeto quadrático
+    gluDeleteQuadric(quad);                           
 }
 
 void drawBase()
 {
-    // Ativa o uso de texturas
+    
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
-    // Configuração de materiais
+    
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
-    // Criação do objeto quadrático para a esfera
+    
     GLUquadric *quad = gluNewQuadric();
-    gluQuadricTexture(quad, GL_TRUE);   // Ativa a textura para a esfera
-    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
+    gluQuadricTexture(quad, GL_TRUE);   
+    gluQuadricNormals(quad, GLU_SMOOTH); 
 
-    // Desenho da esfera com textura
+    
     glPushMatrix();
-    glTranslatef(0.0f, 0.1f, 0.0f);     // Move para a posição desejada
-    gluSphere(quad, baseBaseRadiusSize, 50, 50); // Esfera com raio e subdivisões
+    glTranslatef(0.0f, 0.1f, 0.0f);     
+    gluSphere(quad, baseBaseRadiusSize, 50, 50); 
     glPopMatrix();
 
-    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
+    gluDeleteQuadric(quad); 
 
-    // Desativa o uso de texturas para outros objetos
+    
     glDisable(GL_TEXTURE_2D);
 }
 
 
 void drawArmArticulation()
 {
-        // Ativa o uso de texturas
+        
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
-    // Configuração de materiais
+    
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
-    // Criação do objeto quadrático para a esfera
+    
     GLUquadric *quad = gluNewQuadric();
-    gluQuadricTexture(quad, GL_TRUE);   // Ativa a textura para a esfera
-    gluQuadricNormals(quad, GLU_SMOOTH); // Normais suaves para iluminação
+    gluQuadricTexture(quad, GL_TRUE);   
+    gluQuadricNormals(quad, GLU_SMOOTH); 
 
-    // Desenho da esfera com textura
+    
     glPushMatrix();
     glTranslatef(0, armSizeHeight, 0.0f);
-    gluSphere(quad, armBaseRadiusSize, 50, 50); // Esfera com raio e subdivisões
+    gluSphere(quad, armBaseRadiusSize, 50, 50); 
     glPopMatrix();
 
-    gluDeleteQuadric(quad); // Libera memória do objeto quadrático
+    gluDeleteQuadric(quad); 
 
-    // Desativa o uso de texturas para outros objetos
+    
     glDisable(GL_TEXTURE_2D);
 }
 
 void drawHandForearmArticulation()
 {
     glColor3f(0.5f, 0.35f, 0.05f);
-    // Desenhar a esfera
+    
     glPushMatrix();
     glTranslatef(0, forearmSizeHeight, 0.0f);
-    glutSolidSphere(forearmBaseRadiusSize, forearmBaseRadiusSize *100, forearmBaseRadiusSize *100); // Raio = 0.2, subdivisões longitude/latitude = 20
+    glutSolidSphere(forearmBaseRadiusSize, forearmBaseRadiusSize *100, forearmBaseRadiusSize *100); 
     glPopMatrix();
 }
 
@@ -328,9 +328,9 @@ void drawHandForearmArticulation()
 void drawArm()
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -338,7 +338,7 @@ void drawArm()
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Defina a cor como branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
     glPushMatrix();
     glTranslatef(0.0f, 1.0f, 0.0f);
@@ -353,9 +353,9 @@ void drawForearm()
 {
 
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[0]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Use MODULATE para combinar com a iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -363,7 +363,7 @@ void drawForearm()
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Defina a cor como branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
     glPushMatrix();
     glTranslatef(0.0f, forearmSizeHeight, 0.0f);
@@ -377,42 +377,42 @@ void drawTexturedCube()
 {
     glBegin(GL_QUADS);
 
-    // Face frontal
+    
     glNormal3f(0.0f, 0.0f, 1.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
 
-    // Face traseira
+    
     glNormal3f(0.0f, 0.0f, -1.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
 
-    // Face superior
+    
     glNormal3f(0.0f, 1.0f, 0.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f,  0.5f,  0.5f);
 
-    // Face inferior
+    
     glNormal3f(0.0f, -1.0f, 0.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-0.5f, -0.5f,  0.5f);
 
-    // Face direita
+    
     glNormal3f(1.0f, 0.0f, 0.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f( 0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f( 0.5f,  0.5f, -0.5f);
     glTexCoord2f(1.0f, 1.0f); glVertex3f( 0.5f,  0.5f,  0.5f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f( 0.5f, -0.5f,  0.5f);
 
-    // Face esquerda
+    
     glNormal3f(-1.0f, 0.0f, 0.0f);
     glTexCoord2f(0.0f, 0.0f); glVertex3f(-0.5f, -0.5f, -0.5f);
     glTexCoord2f(1.0f, 0.0f); glVertex3f(-0.5f,  0.5f, -0.5f);
@@ -426,102 +426,102 @@ void drawTexturedCube()
 void drawClaw(float clawAngle)
 {
     glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); // Associa a textura
+    glBindTexture(GL_TEXTURE_2D, idsTextura[2]); 
 
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); // Combina textura com iluminação
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
 
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
 
-    glColor3f(1.0f, 1.0f, 1.0f); // Cor branca para não interferir na textura
+    glColor3f(1.0f, 1.0f, 1.0f); 
 
-    // Base da garra (palma da mão)
+    
     glPushMatrix();
-    glTranslatef(baseHandX, baseHandY, baseHandZ); // Posição da base
-    glScalef(0.2f, 0.5f, 0.3f); // Escala da base
-    drawTexturedCube(); // Desenha o cubo com textura
+    glTranslatef(baseHandX, baseHandY, baseHandZ); 
+    glScalef(0.2f, 0.5f, 0.3f); 
+    drawTexturedCube(); 
     glPopMatrix();
 
     glDisable(GL_TEXTURE_2D);
 
-    // Função para desenhar um dedo
+    
     auto drawFinger = [](float posX, float posY, float posZ, float angle, float length, float width) {
         glPushMatrix();
-        glTranslatef(posX, posY, posZ); // Posição inicial do dedo
-        glRotatef(angle, 0.0f, 0.0f, 1.0f); // Rotação do dedo
-        glTranslatef(length / 2, 0.0f, 0.0f); // Ajuste para rotação
-        glScalef(length, width, width); // Escala do dedo
-        drawTexturedCube(); // Desenha o dedo como cubo texturizado
+        glTranslatef(posX, posY, posZ); 
+        glRotatef(angle, 0.0f, 0.0f, 1.0f); 
+        glTranslatef(length / 2, 0.0f, 0.0f); 
+        glScalef(length, width, width); 
+        drawTexturedCube(); 
         glPopMatrix();
     };
 
-    // Dedos superiores
-    drawFinger(indicadorX, indicadorY, indicadorZ, clawAngle, 0.3f, 0.05f); // Indicador
-    drawFinger(medioX, medioY, medioZ, clawAngle, 0.3f, 0.05f);           // Médio
-    drawFinger(anelarX, anelarY, anelarZ, clawAngle, 0.3f, 0.05f);        // Anelar
-    drawFinger(mindinhoX, mindinhoY, mindinhoZ, clawAngle, 0.25f, 0.05f); // Mindinho   
-    drawFinger(polegarX, polegarY, polegarZ, -clawAngle, 0.25f, 0.05f);   // Polegar
+    
+    drawFinger(indicadorX, indicadorY, indicadorZ, clawAngle, 0.3f, 0.05f); 
+    drawFinger(medioX, medioY, medioZ, clawAngle, 0.3f, 0.05f);           
+    drawFinger(anelarX, anelarY, anelarZ, clawAngle, 0.3f, 0.05f);        
+    drawFinger(mindinhoX, mindinhoY, mindinhoZ, clawAngle, 0.25f, 0.05f); 
+    drawFinger(polegarX, polegarY, polegarZ, -clawAngle, 0.25f, 0.05f);   
 }
 
 
 void update(int value) {
-    // Calculate time since the last frame
+    
     clock_t currentTime = clock();
     float dt = (float)(currentTime - prevTime) / CLOCKS_PER_SEC;
     prevTime = currentTime;
 
-    // Cap dt for consistency in low frame rates
+    
     dt = std::min(dt, timeStep);
 
 
-    // Clamp position to ground level
+    
     if (posObjY < 0.0f) {
         posObjY = 0.0f;
-        vel = 0.0f; // Stop velocity on hitting ground
+        vel = 0.0f; 
     }else{
         vel += acc * dt;
         posObjY += vel * dt;
     }
 
-    // Redisplay
+    
     glutPostRedisplay();
     
-    // Continue updating
-    glutTimerFunc(16, update, 0); // 16 ms for ~60 FPS
+    
+    glutTimerFunc(16, update, 0); 
 }
 
 void specialKeys(int key, int x, int y) {
-    // Calculate direction vector
+    
     float directionX = cameraTargetX - cameraPosX;
     float directionY = cameraTargetY - cameraPosY;
     float directionZ = cameraTargetZ - cameraPosZ;
 
-    // Normalize direction vector
+    
     float length = sqrt(directionX * directionX + directionY * directionY + directionZ * directionZ);
     directionX /= length;
     directionY /= length;
     directionZ /= length;
 
-    // Handle arrow keys
+    
     switch (key) {
-    case GLUT_KEY_UP: // Move forward
+    case GLUT_KEY_UP: 
         cameraPosX += directionX * cameraSpeed;
         cameraPosY += directionY * cameraSpeed;
         cameraPosZ += directionZ * cameraSpeed;
         break;
-    case GLUT_KEY_DOWN: // Move backward
+    case GLUT_KEY_DOWN: 
         cameraPosX -= directionX * cameraSpeed;
         cameraPosY -= directionY * cameraSpeed;
         cameraPosZ -= directionZ * cameraSpeed;
         break;
-    case GLUT_KEY_LEFT: // Rotate left
-        cameraPosX -= directionZ * cameraSpeed; // Perpendicular to the forward direction
+    case GLUT_KEY_LEFT: 
+        cameraPosX -= directionZ * cameraSpeed; 
         cameraPosZ += directionX * cameraSpeed;
         break;
-    case GLUT_KEY_RIGHT: // Rotate right
-        cameraPosX += directionZ * cameraSpeed; // Perpendicular to the forward direction
+    case GLUT_KEY_RIGHT: 
+        cameraPosX += directionZ * cameraSpeed; 
         cameraPosZ -= directionX * cameraSpeed;
         break;
     }
@@ -535,13 +535,13 @@ void resetCamera() {
     cameraTargetX = 0.0f;
     cameraTargetY = 0.0f;
     cameraTargetZ = 0.0f;
-    glutPostRedisplay(); // Redesenha a cena
+    glutPostRedisplay(); 
 }
 
-// Função de callback do mouse
+
 void mouse(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
-        // Reseta a câmera ao clicar com o botão esquerdo do mouse
+        
         resetCamera();
     }
 }
@@ -550,34 +550,34 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
 
-    // Set camera
+    
     gluLookAt(
-        cameraPosX, cameraPosY, cameraPosZ, // Camera position
-        cameraTargetX, cameraTargetY, cameraTargetZ, // Camera target
-        0.0, 1.0, 0.0 // Up vector
+        cameraPosX, cameraPosY, cameraPosZ, 
+        cameraTargetX, cameraTargetY, cameraTargetZ, 
+        0.0, 1.0, 0.0 
     );
 
     drawObject();
     drawAxes();
 
-    // Base rotation
+    
     glPushMatrix();
     glRotatef(baseRotate, 0.0, 1.0, 0.0);
     drawBase();
 
-    // Arm rotation
+    
     glTranslatef(0.0, 0.1, 0.0);
     glRotatef(armRotate, 0.0, 0.0, 1.0);
     drawArm();
     drawArmArticulation();
 
-    // Forearm rotation
+    
     glTranslatef(0.0, 1.0, 0.0);
     glRotatef(forearmRotate, 0.0, 0.0, 1.0);
     drawForearm();
     drawHandForearmArticulation();
 
-    // Claw rotation
+    
     glTranslatef(0.0, forearmSizeHeight + 0.1, 0.0);
     glRotatef(clawRotate, 0.0, 0.0, 1.0);
     drawClaw(clawAngle);
@@ -622,13 +622,13 @@ void keyboard(unsigned char key, int x, int y)
     case 'f':
         clawRotate -= 5.0f;
         break;
-    case 't': // Abrir os dedos
+    case 't': 
         clawAngle += 5.0f;
-        if (clawAngle > 45.0f) clawAngle = 45.0f; // Limite máximo de abertura
+        if (clawAngle > 45.0f) clawAngle = 45.0f; 
         break;
-    case 'g': // Fechar os dedos
+    case 'g': 
         clawAngle -= 5.0f;
-        if (clawAngle < -30.0f) clawAngle = -30.0f; // Limite mínimo de fechamento
+        if (clawAngle < -30.0f) clawAngle = -30.0f; 
         break;
     case 27:
         exit(0);
@@ -646,8 +646,8 @@ int main(int argc, char **argv) {
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
-    glutSpecialFunc(specialKeys); // Registrar o handler das teclas especiais
-    glutMouseFunc(mouse); // Registrar o handler do mouse
+    glutSpecialFunc(specialKeys); 
+    glutMouseFunc(mouse); 
 
     glutTimerFunc(16, update, 0);
     createMenu();
